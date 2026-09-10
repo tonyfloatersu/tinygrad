@@ -400,8 +400,17 @@ class Tensor(RandMixin):
     if any(t.dtype in dtypes.weaks and t.uop.device is not None for t in (self,)+lst):
       raise RuntimeError("cannot realize a weak dtype; cast to a concrete dtype first")
     big_sink, becomes_map = transform_to_call(UOp.sink(*[x.uop for x in (self,)+lst]))
+
+    print("big_sink")
+    print(big_sink)
+    print("becomes_map")
+    print(becomes_map)
+
     _apply_map_to_tensors(becomes_map, name="buffers")
-    return create_linear_with_vars(big_sink)
+    result_linear_with_vars = create_linear_with_vars(big_sink)
+    print("result linear with vars")
+    print(result_linear_with_vars)
+    return result_linear_with_vars
 
   def schedule_linear(self, *lst:Tensor) -> UOp:
     """Creates the schedule needed to realize these Tensor(s)."""

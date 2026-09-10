@@ -203,10 +203,18 @@ earliest_rewrites = mop_cleanup+PatternMatcher([
   (UPat(Ops.AFTER, name="s"), lambda s: s.replace(src=(s.src[0],)+tuple(walk_mop(u) for u in s.src[1:] if u.op is not Ops.NOOP))),
 ])
 
+# TODO under lower_sink_to_linear
 @rewrite_group(new_ctx=False)
 def prepare_rangeify(sink:UOp) -> UOp:
   # prepare for rangeify
+  print("in prepare rangeify")
+  print(sink)
   tsink = graph_rewrite(sink, multi_pm, name="multi_pm")
   if OPENPILOT_HACKS: tsink = graph_rewrite(tsink, pm_fold_moved_after, ctx={}, name="fold moved afters")
+  print("tsink before last prepare rangeify rewrite")
+  print(tsink)
+  # TODO should be here.
   tsink = graph_rewrite(tsink, pm_mops+earliest_rewrites, bottom_up=True, name="earliest rewrites")
+  print("tsink after last prepare rangeify rewrite")
+  print(tsink)
   return tsink

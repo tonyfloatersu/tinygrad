@@ -127,6 +127,7 @@ def lower_sink_to_linear(call:UOp) -> UOp|None:
   if not SCACHE or (sc_ret:=schedule_cache.get(cache_key, None)) is None:
     if SPEC: type_verify(function, spec_tensor)
     # support recursive CALLs
+    # TODO found where the possible redundant copy and redundant buffer coming from.
     linear = create_schedule(get_kernel_graph(prepare_rangeify(function)))
     if SCACHE: schedule_cache[cache_key] = linear
   else:
@@ -186,6 +187,9 @@ pm_copy_from_store = PatternMatcher([
 def create_linear_with_vars(big_sink:UOp) -> tuple[UOp, dict[str, int]]:
   # big_sink srcs are all the Tensors
   linear_call = graph_rewrite(big_sink, pm_schedule, name="schedule to linear", enter_calls=True)
+
+  print("first pass?")
+  print(linear_call)
 
   # this recursively resolves the linear_call and allocates buffers
   linear = graph_rewrite(linear_call, pm_resolve_linear_call, name="resolve linear call")
