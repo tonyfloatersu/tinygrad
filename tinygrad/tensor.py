@@ -194,6 +194,7 @@ pm_replace_buf = pm_canonicalize_unbound+PatternMatcher([
   (UPat(Ops.AFTER, name="b"), lambda ctx,b: replace_input_buffer(ctx, b) if b.is_bound_var else None),
 ])
 
+# TODO under linear with vars
 @rewrite_group(lambda _,ret: f"Callify {pluralize('Buffer', len(ret[1]))}")
 def transform_to_call(big_sink:UOp) -> tuple[UOp, dict[UOp, UOp]]:
   if VIZ: graph_rewrite(big_sink, PatternMatcher([]), name="View Tensor Graph")
@@ -236,6 +237,7 @@ def transform_to_call(big_sink:UOp) -> tuple[UOp, dict[UOp, UOp]]:
 # *** all in scope Tensors are here. this gets relevant UOps ***
 
 all_tensors: dict[weakref.ref[Tensor], None] = {}
+# TODO under linear with vars
 def _apply_map_to_tensors(applied_map:dict[UOp, UOp], name:str) -> None:
   with cpu_profile(TracingKey(name), "TINY"):
     # get tensors in scope
@@ -391,6 +393,7 @@ class Tensor(RandMixin):
     _apply_map_to_tensors({x:y.after(big_sink) for x,y in buffer_map.items()}, name="callify")
     return self
 
+  # TODO the "graph" building
   def linear_with_vars(self, *lst:Tensor) -> tuple[UOp, dict[str, int]]:
     """Creates the LINEAR UOp needed to realize these Tensor(s), with Variables."""
     # weakness ends where storage begins
@@ -406,6 +409,7 @@ class Tensor(RandMixin):
     assert len(var_vals) == 0
     return linear
 
+  # TODO the "graph" starts at this
   @disable_gc()
   def realize(self, *lst:Tensor, do_update_stats=True) -> Tensor:
     """Triggers the computation needed to create these Tensor(s)."""
@@ -542,6 +546,7 @@ class Tensor(RandMixin):
     if self.grad is not None: ret.grad = self.grad.clone(device=device)
     return ret.is_param_(self.is_param)
 
+  # TODO look at the to device
   def to(self, device:str|tuple[str, ...]|None) -> Tensor:
     """
     Moves the tensor to the given device.
